@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import gsap from 'gsap'
 import { ArrowDown, ArrowUpRight, RotateCcw, Smile } from 'lucide-react'
-import { scene, reduced, hasWebGL } from '../store'
+import { scene, reduced, hasWebGL, intro } from '../store'
 import Navbar from './Navbar'
 import { fx } from '../mascotFx'
 import DotField from './DotField'
@@ -15,7 +15,8 @@ export default function Hero() {
   useEffect(() => {
     if (reduced) return
     const ctx = gsap.context(() => {
-      gsap.timeline({ defaults: { ease: 'power4.out' } })
+      const tl = gsap.timeline({ paused: true, defaults: { ease: 'power4.out' } }); intro.done.then(() => tl.play())
+      tl
         .from('.hl', { yPercent: 110, duration: 1.2, stagger: .12 })
         .from('.hero-fade', { y: 24, opacity: 0, duration: .9, stagger: .1 }, '-=.7')
         .from('.stage', { scale: .7, opacity: 0, duration: 1.6 }, 0)
@@ -24,7 +25,7 @@ export default function Hero() {
   }, [])
   return (
     <section id="home" className="hero" ref={ref}>
-      <DotField />
+      <DotField spacing={innerWidth < 768 ? 20 : 16} />
       <Navbar />
       <div className="stage" data-cursor aria-hidden="true">
         <img className="char-fallback" src={charImg} alt="Spectrum mascot" />

@@ -10,12 +10,12 @@ export default function MascotBubble() {
       const now = performance.now()
       if (bot.chatOpen || (prio < 3 && quiet())) return // no bubbles over an open chat; dismiss mutes suggestions
       if (now < cur.current.until && prio < cur.current.prio) return // never stack or override something more important
-      cur.current = { prio, until: now + ms }; setB({ text, hint }); setShow(true)
-      clearTimeout(timer.current); timer.current = setTimeout(() => setShow(false), ms)
+      cur.current = { prio, until: now + ms }; setB({ text, hint }); setShow(true); bot.hint = !!hint
+      clearTimeout(timer.current); timer.current = setTimeout(() => { setShow(false); bot.hint = false }, ms)
     }
     bot.lis.add(on); return () => { bot.lis.delete(on); clearTimeout(timer.current) }
   }, [])
-  const dismiss = () => { try { sessionStorage.setItem('spectrum-quiet', '1') } catch {} clearTimeout(timer.current); cur.current.until = 0; setShow(false) }
+  const dismiss = () => { try { sessionStorage.setItem('spectrum-quiet', '1') } catch {} clearTimeout(timer.current); cur.current.until = 0; bot.hint = false; setShow(false) }
   return <div className={'bubble glass' + (show ? ' on' : '')} role="status" aria-live="polite">
     {b && <><span>{b.text}</span>{b.hint && <small>{b.hint}</small>}</>}
     <button type="button" className="bubble-x" aria-label="Dismiss and mute suggestions" tabIndex={show ? 0 : -1} onClick={dismiss}><X size={12} /></button></div>
