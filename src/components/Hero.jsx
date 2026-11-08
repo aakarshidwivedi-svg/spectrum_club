@@ -1,0 +1,51 @@
+import { useEffect, useRef, useState, lazy, Suspense } from 'react'
+import gsap from 'gsap'
+import { ArrowDown, ArrowUpRight, RotateCcw, Smile } from 'lucide-react'
+import { scene, reduced, hasWebGL } from '../store'
+import Navbar from './Navbar'
+import { fx } from '../mascotFx'
+import DotField from './DotField'
+import charImg from '../assets/spectrum-character.png'
+const Hero3D = lazy(() => import('./Hero3D'))
+const hover = v => ({ onPointerEnter: () => (scene.hover = v), onPointerLeave: () => (scene.hover = 0), onFocus: () => (scene.hover = v), onBlur: () => (scene.hover = 0) })
+
+export default function Hero() {
+  const ref = useRef(), [gl] = useState(() => hasWebGL())
+  const lowPower = innerWidth < 768 || (navigator.hardwareConcurrency || 8) <= 4
+  useEffect(() => {
+    if (reduced) return
+    const ctx = gsap.context(() => {
+      gsap.timeline({ defaults: { ease: 'power4.out' } })
+        .from('.hl', { yPercent: 110, duration: 1.2, stagger: .12 })
+        .from('.hero-fade', { y: 24, opacity: 0, duration: .9, stagger: .1 }, '-=.7')
+        .from('.stage', { scale: .7, opacity: 0, duration: 1.6 }, 0)
+    }, ref)
+    return () => ctx.revert()
+  }, [])
+  return (
+    <section id="home" className="hero" ref={ref}>
+      <DotField />
+      <Navbar />
+      <div className="stage" data-cursor aria-hidden="true">
+        <img className="char-fallback" src={charImg} alt="Spectrum mascot" />
+        {gl && <Suspense fallback={null}><Hero3D lowPower={lowPower}/></Suspense>}
+      </div>
+      <div className="hero-copy">
+        <p className="eyebrow hero-fade">Spectrum Club</p>
+        <h1 className="display" aria-label="Different Perspectives. Limitless Impact.">
+          <span className="line"><span className="hl">Different</span></span>
+          <span className="line"><span className="hl grad">Perspectives.</span></span>
+          <span className="line"><span className="hl">Limitless</span></span>
+          <span className="line"><span className="hl">Impact.</span></span>
+        </h1>
+        <p className="lead hero-fade">A community where technology, creativity and collaboration meet — and every viewpoint adds a new colour to what we build together.</p>
+        <div className="cta hero-fade">
+          <a className="btn primary magnetic" href="#about" {...hover(1)}>Explore Spectrum <ArrowUpRight size={18}/></a>
+          <a className="btn ghost magnetic" href="#perspectives" {...hover(.6)}>Discover Our Story</a>
+        </div>
+      </div>
+      <div className="drag-hint glass hero-fade"><span className="orbit-ind" aria-hidden="true"/>Drag to explore<button type="button" className="reset" aria-label="Say hello to the mascot" onClick={() => fx.react()}><Smile size={14}/></button><button type="button" className="reset" aria-label="Reset 3D view" onClick={() => { scene.reset = true }}><RotateCcw size={14}/></button></div>
+      <a className="scroll-ind hero-fade" href="#about" aria-label="Scroll to About"><span>Scroll</span><ArrowDown size={16}/></a>
+    </section>
+  )
+}
